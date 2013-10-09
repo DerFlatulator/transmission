@@ -481,11 +481,25 @@ function Inspector(controller) {
     createFileTreeModel = function (tor) {
         var i, j, n, name, tokens, walk, tree, token, sub,
             leaves = [ ],
-            tree = { children: { }, file_indices: [ ] };
+            tree = { children: { }, file_indices: [ ] },
+            files_sorted = [];
 
         n = tor.getFileCount();
+        
         for (i=0; i<n; ++i) {
-            name = tor.getFile(i).name;
+            files_sorted.push({
+                name: tor.getFile(i),
+                index: i
+            });
+        }
+        files_sorted.sort(function(a, b) {
+            if (a.name < b.name) return -1;
+            if (a.name > b.name) return 1;
+            return 0;
+        });
+        
+        for (i=0; i<n; i++) {
+            name = files_sorted[i].name;
             tokens = name.split('/');
             walk = tree;
             for (j=0; j<tokens.length; ++j) {
@@ -502,7 +516,7 @@ function Inspector(controller) {
                 }
                 walk = sub;
             }
-            walk.file_index = i;
+            walk.file_index = files_sorted[i].index;
             delete walk.children;
             leaves.push (walk);
         }
@@ -554,6 +568,7 @@ function Inspector(controller) {
 
         tor = torrents[0];
         n = tor ? tor.getFileCount() : 0;
+
         if (tor!=data.file_torrent || n!=data.file_torrent_n) {
             // rebuild the file list...
             clearFileList();
